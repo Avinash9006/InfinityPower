@@ -16,10 +16,21 @@ const chapterRoutes = require("./routes/chapterRoutes"); // ✅ for chapters
 const app = express();
 
 // Middlewares
-app.use(cors());
+const allowedOrigins = [
+  // "http://localhost:3000",            // local dev
+  "https://your-frontend.vercel.app"  // deployed frontend
+];
+
 app.use(cors({
-  origin: "https://your-frontend.vercel.app",  // replace with your Vercel/Netlify URL
-  credentials: true   // if using cookies / auth headers
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, Postman)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
