@@ -17,6 +17,10 @@ const app = express();
 
 // Middlewares
 app.use(cors());
+app.use(cors({
+  origin: "https://your-frontend.vercel.app",  // replace with your Vercel/Netlify URL
+  credentials: true   // if using cookies / auth headers
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
