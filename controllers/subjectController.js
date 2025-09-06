@@ -4,29 +4,24 @@ const Course = require("../models/courseModel");
 // ✅ Create a subject under a course
 const createSubject = async (req, res) => {
   try {
+    const tenantId = req.user.tenantId;
     const { courseId } = req.params;
     const { title, description, image } = req.body;
+  
+    if (!title) return res.status(400).json({ error: "Title is required" });
 
-    // Ensure course exists
-    const course = await Course.findById(courseId);
-    if (!course) {
-      return res.status(404).json({ error: "Course not found" });
-    }
+    // Ensure course exists and belongs to tenant
+    const course = await Course.findOne({ _id: courseId, tenantId });
+    if (!course) return res.status(404).json({ error: "Course not found in your tenant" });
 
-    // Create subject with course reference
-    const subject = new Subject({
+    const subject = await Subject.create({
+      tenantId,
       title,
       description,
       image,
-      course: courseId, // ✅ Link subject to course
-      createdBy: req.user._id,
+      courseId: courseId,
+      createdBy: req.user.userId,
     });
-
-    await subject.save();
-
-    // Push subject reference into course
-    course.subjects.push(subject._id);
-    await course.save();
 
     res.status(201).json(subject);
   } catch (err) {
@@ -38,18 +33,14 @@ const createSubject = async (req, res) => {
 // ✅ Get all subjects for a course
 const getSubjects = async (req, res) => {
   try {
+    const tenantId = req.user.tenantId;
     const { courseId } = req.params;
 
-    const course = await Course.findById(courseId).populate({
-      path: "subjects",
-      populate: { path: "chapters" },
-    });
+    const subjects = await Subject.find({ course: courseId })
+      .populate("chapters")
+      .populate("createdBy", "name email role");
 
-    if (!course) {
-      return res.status(404).json({ error: "Course not found" });
-    }
-
-    res.json(course.subjects);
+    res.json(subjects);
   } catch (err) {
     console.error("Error fetching subjects:", err);
     res.status(500).json({ error: "Failed to fetch subjects" });
@@ -59,15 +50,15 @@ const getSubjects = async (req, res) => {
 // ✅ Get a single subject by ID
 const getSubjectById = async (req, res) => {
   try {
+    const tenantId = req.user.tenantId;
     const { id } = req.params;
-    const subject = await Subject.findById(id)
-      .populate("chapters")
-      .populate("createdBy", "name email role")
-      .populate("course", "title"); // ✅ optional: show which course it belongs to
 
-    if (!subject) {
-      return res.status(404).json({ error: "Subject not found" });
-    }
+    const subject = await Subject.findOne({ _id: id })
+      // .populate("chapters")
+      // .populate("createdBy", "name email role")
+      // .populate("course", "title");
+
+    if (!subject) return res.status(404).json({ error: "Subject not found in your tenant" });
 
     res.json(subject);
   } catch (err) {
@@ -79,18 +70,17 @@ const getSubjectById = async (req, res) => {
 // ✅ Update subject
 const updateSubject = async (req, res) => {
   try {
+    const tenantId = req.user.tenantId;
     const { id } = req.params;
     const { title, description, image } = req.body;
 
-    const subject = await Subject.findByIdAndUpdate(
-      id,
+    const subject = await Subject.findOneAndUpdate(
+      { _id: id, tenantId },
       { title, description, image },
-      { new: true }
+      { new: true, runValidators: true }
     );
 
-    if (!subject) {
-      return res.status(404).json({ error: "Subject not found" });
-    }
+    if (!subject) return res.status(404).json({ error: "Subject not found in your tenant" });
 
     res.json(subject);
   } catch (err) {
@@ -102,20 +92,14 @@ const updateSubject = async (req, res) => {
 // ✅ Delete subject
 const deleteSubject = async (req, res) => {
   try {
-    const { courseId, id } = req.params;
+    const tenantId = req.user.tenantId;
+    const { id } = req.params;
 
-    // Remove subject from course if exists
-    const course = await Course.findById(courseId);
-    if (course) {
-      course.subjects.pull(id);
-      await course.save();
-    }
+    const subject = await Subject.findOneAndDelete({ _id: id, tenantId });
+    if (!subject) return res.status(404).json({ error: "Subject not found in your tenant" });
 
-    // Delete subject itself
-    const subject = await Subject.findByIdAndDelete(id);
-    if (!subject) {
-      return res.status(404).json({ error: "Subject not found" });
-    }
+    // Optional: delete chapters and videos under this subject
+    // await Chapter.deleteMany({ subject: id });
 
     res.json({ message: "Subject deleted successfully" });
   } catch (err) {

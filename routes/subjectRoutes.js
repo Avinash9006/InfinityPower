@@ -1,8 +1,8 @@
 const express = require("express");
-const router = express.Router({ mergeParams: true }); // ✅ allow access to courseId from parent route
+const router = express.Router({ mergeParams: true }); // allows access to courseId from parent route
 const { ROLES } = require("../constants");
-const chapterRoutes = require("./chapterRoutes");
 const { auth, authorize } = require("../middlewares/authMiddleware");
+const chapterRoutes = require("./chapterRoutes");
 const {
   createSubject,
   getSubjects,
@@ -11,7 +11,7 @@ const {
   deleteSubject,
 } = require("../controllers/subjectController");
 
-// 🔹 All subject routes require authentication
+// 🔹 Protect all subject routes
 router.use(auth);
 
 /**
@@ -23,31 +23,36 @@ router.get("/", getSubjects);
 
 /**
  * @route   POST /courses/:courseId/subjects
- * @desc    Create new subject under course
+ * @desc    Create a new subject under a course
  * @access  Teacher/Admin
  */
 router.post("/", authorize(ROLES.teacher, ROLES.admin), createSubject);
 
 /**
  * @route   GET /courses/:courseId/subjects/:id
- * @desc    Get subject by ID
+ * @desc    Get a single subject by ID
  * @access  Authenticated
  */
 router.get("/:id", getSubjectById);
 
 /**
  * @route   PUT /courses/:courseId/subjects/:id
- * @desc    Update subject
+ * @desc    Update a subject
  * @access  Teacher/Admin
  */
 router.put("/:id", authorize(ROLES.teacher, ROLES.admin), updateSubject);
 
 /**
  * @route   DELETE /courses/:courseId/subjects/:id
- * @desc    Delete subject
+ * @desc    Delete a subject
  * @access  Teacher/Admin
  */
 router.delete("/:id", authorize(ROLES.teacher, ROLES.admin), deleteSubject);
+
+/**
+ * 🔹 Nested chapter routes
+ * Example: /courses/:courseId/subjects/:subjectId/chapters/...
+ */
 router.use("/:subjectId/chapters", chapterRoutes);
 
 module.exports = router;

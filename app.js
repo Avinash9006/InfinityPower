@@ -1,53 +1,60 @@
 const express = require('express');
 const cors = require('cors');
+const dotenv = require('dotenv');
 const errorMiddleware = require('./middlewares/errorMiddleware');
 const connectDB = require('./config/db');
-require('dotenv').config();
 
 // Routes
 const authRoutes = require('./routes/authRoutes');
 const videoRoutes = require('./routes/videoRoutes');
 const userRoutes = require('./routes/userRoutes');
-
 const adminRoutes = require("./routes/adminRoutes");
-const courseRoutes = require("./routes/courseRoutes");   // ✅ renamed from playlist // ✅ for subjects
-const chapterRoutes = require("./routes/chapterRoutes"); // ✅ for chapters
+const courseRoutes = require("./routes/courseRoutes");
+const tenantRoutes = require("./routes/tenantRoutes");
+
+dotenv.config();
 
 const app = express();
 
-// Middlewares
+// 🔹 CORS configuration
 const allowedOrigins = [
-  // "http://localhost:3000",            // local dev
+  "http://localhost:3000",            // local dev
   "https://your-frontend.vercel.app"  // deployed frontend
 ];
 
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, Postman)
+  origin: function(origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error("Not allowed by CORS"));
+      callback(new Error("CORS policy: Not allowed"));
     }
   },
   credentials: true
 }));
+
+// 🔹 Body parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
+// 🔹 API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/videos', videoRoutes);
 app.use('/api/users', userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/courses", courseRoutes);
+app.use("/api/tenants", tenantRoutes); 
 
-// Error handler (last middleware)
+// 🔹 Error handler (last middleware)
 app.use(errorMiddleware);
 
-// Start server
+// 🔹 Start server after DB connection
 const PORT = process.env.PORT || 5000;
-
-connectDB().then(() => {
-  app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-});
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+  })
+  .catch(err => {
+    console.error("Failed to connect to DB:", err);
+    process.exit(1);
+  });

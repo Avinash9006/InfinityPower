@@ -1,12 +1,10 @@
-// subjectModel.js
 const mongoose = require("mongoose");
 
 const subjectSchema = new mongoose.Schema({
+  courseId: { type: mongoose.Schema.Types.ObjectId, ref: "Course", required: true },
   title: { type: String, required: true },
   description: String,
-  course: { type: mongoose.Schema.Types.ObjectId, ref: "Course" }, // ✅
-  chapters: [{ type: mongoose.Schema.Types.ObjectId, ref: "Chapter" }],
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  order: { type: Number, default: 0 }
 }, { timestamps: true });
 
 module.exports = mongoose.model("Subject", subjectSchema);

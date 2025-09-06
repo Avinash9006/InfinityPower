@@ -1,20 +1,40 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { ROLES } = require('../constants');
-const { uploadVideo, getVideos, getVideo } = require('../controllers/videoController');
-const {auth ,authorize } = require('../middlewares/authMiddleware');
-const {upload} = require('../middlewares/multer');
+const { uploadVideo } = require("../middlewares/multer");
+const { auth, authorize } = require("../middlewares/authMiddleware");
+const videoController = require("../controllers/videoController");
 
-router.use(auth);
-router.post(/.*/, authorize(ROLES.teacher, ROLES.admin));
+// Upload file-based video (teachers/admins)
+router.post(
+  "/upload",
+  auth,
+  authorize("teacher", "admin"),
+  uploadVideo,
+  videoController.uploadVideo
+);
 
+// Add external video link (teachers/admins)
+router.post(
+  "/link",
+  auth,
+  authorize("teacher", "admin"),
+  videoController.addVideoLink
+);
 
+// Get all videos
+router.get("/", auth, videoController.getVideos);
 
-router.post('/', upload.fields([
-    { name: "video", maxCount: 1 },
-    { name: "image", maxCount: 1 },
-  ]), uploadVideo);
-router.get('/', getVideos);
-router.get('/:id', getVideo);
+router.get("/chapter/:chapterId", auth, videoController.getVideosByChapter);
+
+// Get single video
+router.get("/:id", auth, videoController.getVideo);
+
+// Delete video
+router.delete(
+  "/:id",
+  auth,
+  authorize("teacher", "admin"),
+  videoController.deleteVideo
+);
 
 module.exports = router;

@@ -1,36 +1,61 @@
+const bcrypt = require("bcryptjs");
 const User = require("../models/userModel");
 
 // GET /api/users/me
 const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select("-password");
-    res.json(user);
+    const user = await User.findById(req.user.userId).select("-password");
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.json({ success: true, user });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error("Error fetching profile:", err);
+    res.status(500).json({ success: false, message: "Server error", error: err.message });
   }
 };
 
 // PUT /api/users/me
 const updateProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const { name, email, password } = req.body;
 
-    if (!user) return res.status(404).json({ message: "User not found" });
+    const user = await User.findById(req.user.userId);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
-    user.name = req.body.name || user.name;
-    user.email = req.body.email || user.email;
-    if (req.body.password) user.password = req.body.password;
+    // ✅ Validate email if provided
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ success: false, message: "Invalid email address" });
+    }
+
+    // Update fields
+    if (name) user.name = name;
+    if (email) user.email = email;
+
+    // Hash password if provided
+    if (password) {
+      if (password.length < 6) {
+        return res.status(400).json({ success: false, message: "Password must be at least 6 characters" });
+      }
+      user.password = await bcrypt.hash(password, 10);
+    }
 
     const updatedUser = await user.save();
 
     res.json({
-      _id: updatedUser._id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      role: updatedUser.role,
+      success: true,
+      user: {
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        tenantId: updatedUser.tenantId,
+      },
     });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error("Error updating profile:", err);
+    res.status(500).json({ success: false, message: "Server error", error: err.message });
   }
 };
 

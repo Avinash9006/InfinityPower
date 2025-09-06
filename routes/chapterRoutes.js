@@ -1,5 +1,5 @@
 const express = require("express");
-const router = express.Router({ mergeParams: true }); // ✅ allows subjectId & courseId to flow
+const router = express.Router({ mergeParams: true }); // allows courseId & subjectId to flow
 const { ROLES } = require("../constants");
 const { auth, authorize } = require("../middlewares/authMiddleware");
 const {
@@ -10,7 +10,7 @@ const {
   deleteChapter,
 } = require("../controllers/chapterController");
 
-// 🔹 Require auth for all chapter routes
+// 🔹 Protect all chapter routes with authentication
 router.use(auth);
 
 /**
@@ -22,28 +22,28 @@ router.get("/", getChapters);
 
 /**
  * @route   POST /courses/:courseId/subjects/:subjectId/chapters
- * @desc    Create chapter under a subject
+ * @desc    Create a new chapter under a subject
  * @access  Teacher/Admin
  */
 router.post("/", authorize(ROLES.teacher, ROLES.admin), createChapter);
 
 /**
  * @route   GET /courses/:courseId/subjects/:subjectId/chapters/:id
- * @desc    Get chapter by ID
+ * @desc    Get a single chapter by ID
  * @access  Authenticated
  */
 router.get("/:id", getChapterById);
 
 /**
  * @route   PUT /courses/:courseId/subjects/:subjectId/chapters/:id
- * @desc    Update chapter
+ * @desc    Update a chapter
  * @access  Teacher/Admin
  */
 router.put("/:id", authorize(ROLES.teacher, ROLES.admin), updateChapter);
 
 /**
  * @route   DELETE /courses/:courseId/subjects/:subjectId/chapters/:id
- * @desc    Delete chapter
+ * @desc    Delete a chapter
  * @access  Teacher/Admin
  */
 router.delete("/:id", authorize(ROLES.teacher, ROLES.admin), deleteChapter);

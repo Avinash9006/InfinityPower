@@ -1,12 +1,23 @@
 const express = require("express");
-const { getProfile, updateProfile } = require("../controllers/userController");
-const { auth } = require("../middlewares/authMiddleware");
-
 const router = express.Router();
+const { auth } = require("../middlewares/authMiddleware");
+const { getProfile, updateProfile } = require("../controllers/userController");
 
-router.use(auth); // All routes require authentication
+// 🔹 Protect all user routes
+router.use(auth);
 
-router.get("/me", getProfile);       // GET logged-in user profile
-router.put("/me", updateProfile);    // UPDATE profile
+/**
+ * @route   GET /api/users/me
+ * @desc    Get logged-in user's profile
+ * @access  Authenticated
+ */
+router.get("/me", getProfile);
+
+/**
+ * @route   PUT /api/users/me
+ * @desc    Update logged-in user's profile
+ * @access  Authenticated
+ */
+router.put("/me", updateProfile);
 
 module.exports = router;
