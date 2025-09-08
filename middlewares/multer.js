@@ -53,8 +53,11 @@ const uploadLogo = upload.single("logo");
 // ✅ Accept resource file (for notes/dpp/etc.)
 const uploadResource = upload.single("resource");
 
+const uploadProfileImage = upload.single("profileImage")
+
 module.exports = { 
   uploadVideo: uploadVideoFields, 
   uploadLogo, 
-  uploadResource 
+  uploadResource,
+  uploadProfileImage
 };

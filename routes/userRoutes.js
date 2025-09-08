@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const { uploadProfileImage } = require("../middlewares/multer");
 const { auth } = require("../middlewares/authMiddleware");
 const { getProfile, updateProfile } = require("../controllers/userController");
 
@@ -18,6 +19,6 @@ router.get("/me", getProfile);
  * @desc    Update logged-in user's profile
  * @access  Authenticated
  */
-router.put("/me", updateProfile);
+router.put("/me", uploadProfileImage, updateProfile);
 
 module.exports = router;
