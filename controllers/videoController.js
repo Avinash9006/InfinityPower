@@ -167,7 +167,7 @@ const getVideosStandalone = async (req, res) => {
 
     const videosWithUrls = videos.map((v) => {
       const obj = v.toObject();
-      obj.url = v.type === "upload" ? generateSignedUrl(v.url) : v.url;
+      obj.url = v.type === "upload" ? generateSignedUrl(v.url,"video") : v.url;
       return obj;
     });
 
@@ -204,7 +204,7 @@ const getVideosByChapter = async (req, res) => {
 
     const videosWithUrls = videos.map((v) => {
       const obj = v.toObject();
-      obj.url = v.type === "upload" ? generateSignedUrl(v.url) : v.url;
+      obj.url = v.type === "upload" ? generateSignedUrl(v.url,"video") : v.url;
       return obj;
     });
 
@@ -239,7 +239,7 @@ const getVideo = async (req, res) => {
 
     const videoObj = video.toObject();
     videoObj.url =
-      video.type === "upload" ? generateSignedUrl(video.url) : video.url;
+      video.type === "upload" ? generateSignedUrl(video.url,"video") : video.url;
 
     res.json({ success: true, video: videoObj });
   } catch (err) {
