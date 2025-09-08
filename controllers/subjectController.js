@@ -33,7 +33,6 @@ const createSubject = async (req, res) => {
 // ✅ Get all subjects for a course
 const getSubjects = async (req, res) => {
   try {
-    const tenantId = req.user.tenantId;
     const { courseId } = req.params;
 
     const subjects = await Subject.find({ course: courseId })
@@ -54,9 +53,6 @@ const getSubjectById = async (req, res) => {
     const { id } = req.params;
 
     const subject = await Subject.findOne({ _id: id })
-      // .populate("chapters")
-      // .populate("createdBy", "name email role")
-      // .populate("course", "title");
 
     if (!subject) return res.status(404).json({ error: "Subject not found in your tenant" });
 
@@ -70,12 +66,11 @@ const getSubjectById = async (req, res) => {
 // ✅ Update subject
 const updateSubject = async (req, res) => {
   try {
-    const tenantId = req.user.tenantId;
     const { id } = req.params;
     const { title, description, image } = req.body;
 
     const subject = await Subject.findOneAndUpdate(
-      { _id: id, tenantId },
+      { _id: id },
       { title, description, image },
       { new: true, runValidators: true }
     );

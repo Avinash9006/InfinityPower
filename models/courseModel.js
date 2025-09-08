@@ -4,6 +4,7 @@ const courseSchema = new mongoose.Schema({
   tenantId: { type: mongoose.Schema.Types.ObjectId, ref: "Tenant", required: true },
   title: { type: String, required: true },
   description: String,
+  image:String,
   price: {
     amount: { type: Number, default: 0 },
     currency: { type: String, default: "INR" }

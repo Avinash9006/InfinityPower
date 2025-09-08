@@ -151,15 +151,14 @@ const updateChapter = async (req, res) => {
     }
 
     const chapter = await Chapter.findOneAndUpdate(
-      { _id: id, tenantId: req.user.tenantId },
+      { _id: id },
       {
         title,
         description,
-        order: order || 0,
-        videos: videoId ? [videoId] : [],
+        order: order || 0, 
       },
       { new: true, runValidators: true }
-    ).populate("videos");
+    );
 
     if (!chapter) {
       return res
@@ -195,8 +194,7 @@ const deleteChapter = async (req, res) => {
     }
 
     const chapter = await Chapter.findOneAndDelete({
-      _id: id,
-      tenantId: req.user.tenantId,
+      _id: id
     });
 
     if (!chapter) {
@@ -204,6 +202,18 @@ const deleteChapter = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Chapter not found" });
     }
+
+     await Video.updateMany(
+      { chapterId: chapter._id },
+      { $set: { chapterId: null } }
+    );
+
+    // Unlink resources
+    await Resource.updateMany(
+      { chapterId: chapter._id },
+      { $set: { chapterId: null } }
+    );
+
 
     res.json({ success: true, message: "Chapter deleted successfully" });
   } catch (err) {

@@ -5,7 +5,7 @@ const Subject = require("../models/subjectModel");
 const createCourse = async (req, res) => {
   try {
     const tenantId = req.user.tenantId;
-    const { title, description, price, isFree } = req.body;
+    const { title, description, price, isFree , image} = req.body;
 
     if (!title) {
       return res.status(400).json({ error: "Title is required" });
@@ -14,6 +14,7 @@ const createCourse = async (req, res) => {
     const course = new Course({
       tenantId,
       title,
+      image,
       description,
       price,
       isFree,
